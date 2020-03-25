@@ -1,51 +1,54 @@
-const createAutoComplete = ({ root, renderOption }) => {
+const createAutoComplete = ({
+    root,
+    renderOption,
+    onOptionSelect,
+    inputValue,
+    fetchData
+  }) => {
     root.innerHTML = `
-        <label><b>Search For a Movie</b></label>
-        <input class="input" />
-        <div class="dropdown">
-            <div class="dropdown-menu">
-                <div class="dropdown-content results"></div>
-            </div>
+      <label><b>Search</b></label>
+      <input class="input" />
+      <div class="dropdown">
+        <div class="dropdown-menu">
+          <div class="dropdown-content results"></div>
         </div>
+      </div>
     `;
-    
-    //Define input and ping the API after 1 second of inactivity 
+  
     const input = root.querySelector('input');
     const dropdown = root.querySelector('.dropdown');
     const resultsWrapper = root.querySelector('.results');
-    
+  
     const onInput = async event => {
-        const movies = await fetchData(event.target.value); 
-    
-        if(!movies.length) {
-            dropdown.classList.remove('is-active');
-            return;
-        }
-    
-        resultsWrapper.innerHTML='';
-        dropdown.classList.add('is-active');
-        for (let movie of movies) {
-          const option = document.createElement('a');
-    
-          
-          option.classList.add('dropdown-item');
-          option.innerHTML = renderOption(movie);
-          option.addEventListener('click', () => {
-            dropdown.classList.remove('is-active');
-            input.value = movie.Title; 
-            onMovieSelect(movie);
-          });
-    
-          resultsWrapper.appendChild(option);
-        }
+      const items = await fetchData(event.target.value);
+  
+      if (!items.length) {
+        dropdown.classList.remove('is-active');
+        return;
+      }
+  
+      resultsWrapper.innerHTML = '';
+      dropdown.classList.add('is-active');
+      for (let item of items) {
+        const option = document.createElement('a');
+  
+        option.classList.add('dropdown-item');
+        option.innerHTML = renderOption(item);
+        option.addEventListener('click', () => {
+          dropdown.classList.remove('is-active');
+          input.value = inputValue(item);
+          onOptionSelect(item);
+        });
+  
+        resultsWrapper.appendChild(option);
+      }
     };
-    
     input.addEventListener('input', deBounce(onInput, 500));
-    
+  
     document.addEventListener('click', event => {
-        if (!root.contains(event.target)) {
-            dropdown.classList.remove('is-active');
-        }
+      if (!root.contains(event.target)) {
+        dropdown.classList.remove('is-active');
+      }
     });
-    
-};
+  };
+  
